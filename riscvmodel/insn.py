@@ -454,8 +454,6 @@ class InstructionCIType(InstructionCType):
     def __str__(self):
         return "{} x{}, {}".format(self._mnemonic, self.rd, self.imm)
 
-# TODO
-
 class InstructionCSSType(InstructionCType):
     def __init__(self, rs2: int = None, imm: int = None):
         super(InstructionCSSType, self).__init__()
@@ -490,7 +488,6 @@ class InstructionCIWType(InstructionCType):
         self.imm.randomize()
 
     def decode(self, machinecode: int):
-        # TODO check correctness
         self.rd = ((machinecode >> 2) & 0x07)
         imm = ((machinecode >> 7) & 0xff)
         if imm is not None:
@@ -524,7 +521,7 @@ class InstructionCLType(InstructionCType):
         return "{} x{}, {}".format(self._mnemonic, self.rd, self.imm)
 
 class InstructionCSType(InstructionCType):
-    def __init__(self, rs: int = None, r2: int = None, imm: int = None):
+    def __init__(self, rs: int = None, rs2: int = None, imm: int = None):
         super(InstructionCSType, self).__init__()
         self.rs = rs
         self.rs2 = rs2
@@ -551,6 +548,8 @@ class InstructionCAType(InstructionCType):
     def __init__(self, rs2: int = None, rd: int = None, imm: int = None):
         super(InstructionCAType, self).__init__()
         self.rd = rd
+        if self.rd is not None:
+            self.rd = rd + 8
         self.rs2 = rs2
         self.imm = None # no immidiate
 
@@ -569,7 +568,7 @@ class InstructionCAType(InstructionCType):
         
 
 class InstructionCJType(InstructionCType):
-    def __init__(self, rs: int = None, imm: int = None):
+    def __init__(self, rs: int = None, jp: int = None, imm: int = None):
         super(InstructionCJType, self).__init__()
         self.jp = rs
         self.rs = rs

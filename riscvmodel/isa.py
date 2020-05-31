@@ -341,8 +341,8 @@ class InstructionCADDI(InstructionCIType):
         model.intreg[self.rd] = model.intreg[self.rd] + self.imm
         # x[rd] = x[rd] + sext(imm)
 
-@isaC("c.addiw", 1, funct3=1, Variant=RV64I) #RV64C-only
-class InstructionCADDI(InstructionCIType):
+@isaC("c.addiw", 1, funct3=1, variant=RV64I) #RV64C-only
+class InstructionCADDIW(InstructionCIType):
     def expand(self):
         #addi rd, rd, nzimm[5:0]
         pass
@@ -355,7 +355,12 @@ class InstructionCADDI(InstructionCIType):
 @isaC("c.andi", 1, funct3=4)
 class InstructionCANDI(InstructionCBType):
     def expand(self):
+        #andi rd’,rd’,imm[5:0]
         pass
+
+    def execute(self, model: State):
+        model.intreg[self.rd] = model.intreg[self.rd] + self.imm
+        # x[8+rd’] = x[8+rd’] & sext(imm)
 
 
 @isaC("c.swsp", 2, funct3=6)
@@ -365,11 +370,12 @@ class InstructionCSWSP(InstructionCSSType):
         pass
 
     def decode(self, machinecode: int):
-        self.rs = (machinecode >> 2) & 0x1f
-        imm12to9 = (machinecode >> 9) & 0xf
-        imm8to7 = (machinecode >> 7) & 0x3
-        self.imm.set_from_bits((imm8to7 << 4) | imm12to9)
+        #self.rs = (machinecode >> 2) & 0x1f
+        #imm12to9 = (machinecode >> 9) & 0xf
+        #imm8to7 = (machinecode >> 7) & 0x3
+        #self.imm.set_from_bits((imm8to7 << 4) | imm12to9)
         #M[x[2] + uimm][31:0] = x[rs2]
+        pass
 
     def execute(self, model: State):
         pass
@@ -377,6 +383,7 @@ class InstructionCSWSP(InstructionCSSType):
 @isaC("c.li", 1, funct3=2)
 class InstructionCLI(InstructionCIType):
     def expand(self):
+        #addi rd,x0,imm[5:0]
         pass
 
     def execute(self, model: State):
@@ -386,15 +393,12 @@ class InstructionCLI(InstructionCIType):
 @isaC("c.mv", 2, funct4=8)
 class InstructionCMV(InstructionCRType):
     def expand(self):
-        #
+        #add rd, x0, rs2
         pass
 
     def execute(self, model: State):
         model.intreg[self.rd] = model.intreg[self.rs]
 
-#########################################################################
-#########################################################################
-#########################################################################
 @isaC("c.nop", 1, funct3=0)
 class InstructionCNOP(InstructionCIType):
     def expand(self):
@@ -406,7 +410,7 @@ class InstructionCNOP(InstructionCIType):
         pass
 
 @isaC("c.lui", 1, funct3=3)
-class InstructionCLI(InstructionCIType):
+class InstructionCLUI(InstructionCIType):
     def expand(self):
         #lui rd,nzuimm[17:12]
         pass
@@ -416,13 +420,13 @@ class InstructionCLI(InstructionCIType):
         #x[rd] = sext(imm[17:12] << 12)
 
 @isaC("c.addi16sp", 1, funct3=3)
-class InstructionCLI(InstructionCIType):
+class InstructionCADDI16SP(InstructionCIType):
     def expand(self):
         #addi x2,x2, nzimm[9:4]
         pass
 
     def execute(self, model: State):
-        model.intreg[self.rd] = self.intreg[self.rd] + self.imm
+        model.intreg[self.rd] = model.intreg[self.rd] + self.imm
         #x[2] = x[2] + sext(imm)
 
 @isaC("c.srli", 1, funct3=4)
@@ -432,7 +436,7 @@ class InstructionCSRLI(InstructionCBType):
         pass
 
     def execute(self, model: State):
-        model.intreg[self.rd] = self.intreg[self.rd] >> self.imm
+        model.intreg[self.rd] = model.intreg[self.rd] >> self.imm
         #x[8+rd’] = x[8+rd’] >>u uimm
 
 @isaC("c.srai", 1, funct3=4)
@@ -442,7 +446,7 @@ class InstructionCSRAI(InstructionCBType):
         pass
 
     def execute(self, model: State):
-        model.intreg[self.rd] = self.intreg[self.rd] >> self.imm
+        model.intreg[self.rd] = model.intreg[self.rd] >> self.imm
         # x[8+rd’] = x[8+rd’] >>s uimm
 
 @isaC("c.ebreak", 2, funct4=4)
@@ -457,28 +461,28 @@ class InstructionCEBREAK(InstructionCRType):
         pass
 
     def execute(self, model: State):
-        #model.intreg[self.rd] = model.intreg[self.rs]
         #RaiseException(Breakpoint)
         pass
 
 @isaC("c.addi4spn", 0, funct3=0) # RV32C/RV64C-only instruction 
 class InstructionCADDI4SPN(InstructionCIWType):
     def expand(self):
+        #addi x2,x2,nzimm[9:4]
         pass
 
     def execute(self, model: State):
-        model.intreg[self.rd] = self.intreg[self.rd] + self.imm
+        model.intreg[self.rd] = model.intreg[self.rd] + self.imm
         #x[8+rd’] = x[2] + uimm
-        #addi x2,x2,nzimm[9:4]
+
 
 @isaC("c.slli", 2, funct3=2) # RV32C/RV64C-only instruction 
-class InstructionCSSLI(InstructionCIType):
+class InstructionCSLLI(InstructionCIType):
     def expand(self):
         #slli rd,rd,shamt[5:0]
         pass
 
     def execute(self, model: State):
-        model.intreg[self.rd] = self.intreg[self.rd] << self.imm
+        model.intreg[self.rd] = model.intreg[self.rd] << self.imm
         #x[rd] = x[rd] << uimm
 
 @isaC("c.add", 2, funct4=4)
@@ -488,7 +492,7 @@ class InstructionCADD(InstructionCRType):
         pass
 
     def execute(self, model: State):
-        model.intreg[self.rd] = self.intreg[self.rd] + self.intreg[self.rs2]
+        model.intreg[self.rd] = model.intreg[self.rd] + model.intreg[self.rs]
         # x[rd] = x[rd] + x[rs2]
 
 
@@ -542,10 +546,8 @@ class InstructionCBEQZ(InstructionCBType):
 
     def execute(self, model: State):
         #if (x[8+rs1’] == 0) pc += sext(offset)
-
-        #if(model.intreg[self.rs] == 0):
-        #self.pc += self.intreg[rs]
-        pass
+        if(model.intreg[self.rd] == 0):
+            model.pc += self.imm
 
 @isaC("c.bnez", 1, funct3=7)
 class InstructionCBNEZ(InstructionCBType):
@@ -555,9 +557,8 @@ class InstructionCBNEZ(InstructionCBType):
 
     def execute(self, model: State):
         #if (x[8+rs1’] != 0) pc += sext(offset)
-
-        #if(model.intreg[self.rs] != 0):
-        #self.pc += self.intreg[rs]
+        if(model.intreg[self.rd] != 0):
+            model.pc += self.imm
         pass
 
 @isaC("c.jal", 1, funct3=1, variant=RV32I) #RV32C-only
@@ -567,9 +568,10 @@ class InstructionCJAL(InstructionCJType):
         pass
 
     def execute(self, model: State):
-        #model.intreg[self.rd] = self.pc+2
-        #model.pc += self.imm
         # x[1] = pc+2; pc += sext(offset)
+        # Jump to address and place return address in rd.
+        model.pc += self.imm
+        model.intreg[self.rs] = model.pc+2
         pass
 
 @isaC("c.jr", 2, funct4=4)
@@ -579,7 +581,6 @@ class InstructionCJR(InstructionCRType):
         pass
 
     def execute(self, model: State):
-        #model.intreg[self.rd] = model.intreg[self.rd] + self.imm
         model.pc = model.intreg[self.rs]
         # pc = x[rs1]
 
@@ -590,11 +591,10 @@ class InstructionCJALR(InstructionCRType):
         pass
 
     def execute(self, model: State):
-        model.intreg[self.rd] = model.pc + 2
-        model.pc = model.intreg[self.rs1]
-        #t = self.pc + 2
-        #model.intreg[1] = t
         # t = pc+2; pc = x[rs1]; x[1] = t
+        #Jump to address and place return address in rd.
+        model.pc = model.intreg[self.rs]
+        model.intreg[self.rd] = model.pc + 2
         pass
 
 
@@ -605,30 +605,31 @@ class InstructionCLW(InstructionCLType):
         pass
 
     def execute(self, model: State):
-        model.intreg[self.rd] = self.intreg[self.rd] + self.imm
+        model.intreg[self.rd] = model.intreg[self.rd] + self.imm
         # x[8+rd’] = sext(M[x[8+rs1’] + uimm][31:0])
 
 
 @isaC("c.ld", 0, funct3=3, variant=RV64I) # RV64C/RV128C-only
-class InstructionCLI(InstructionCLType):
+class InstructionCLD(InstructionCLType):
     def expand(self):
         # ld rd’, offset[7:3](rs1’)
         pass
 
     def execute(self, model: State):
-        model.intreg[self.rd] = self.intreg[self.rd] + self.imm
+        model.intreg[self.rd] = model.intreg[self.rd] + self.imm
         # x[8+rd’] = M[x[8+rs1’] + uimm][63:0]
 
 
 @isaC("c.and", 1, funct6=35)
 class InstructionCAND(InstructionCAType):
     def expand(self):
+        # and rd’,rd’,rs2’
         pass
 
     def execute(self, model: State):
-        model.intreg[self.rd] = self.intreg[self.rd] & self.intreg[self.rs2]
+        model.intreg[self.rd] = model.intreg[self.rd] & model.intreg[self.rs2]
         # x[8+rd’] = x[8+rd’] & x[8+rs2’]
-        # and rd’,rd’,rs2’
+
 
 @isaC("c.or", 1, funct6=35)
 class InstructionCOR(InstructionCAType):
@@ -636,7 +637,7 @@ class InstructionCOR(InstructionCAType):
         pass
 
     def execute(self, model: State):
-        model.intreg[self.rd] = self.intreg[self.rd] | self.intreg[self.rs2]
+        model.intreg[self.rd] = model.intreg[self.rd] | model.intreg[self.rs2]
         # x[8+rd’] = x[8+rd’] | x[8+rs2’]
         # or rd’,rd’,rs2’
 
@@ -647,7 +648,7 @@ class InstructionCXOR(InstructionCAType):
         pass
 
     def execute(self, model: State):
-        model.intreg[self.rd] = self.rd ^ self.rs2
+        model.intreg[self.rd] = model.intreg[self.rd] ^ model.intreg[self.rs2]
         # x[8+rd’] = x[8+rd’] ^ x[8+rs2’]
 
 
@@ -658,17 +659,17 @@ class InstructionCSUB(InstructionCAType):
         pass
 
     def execute(self, model: State):
-        model.intreg[self.rd] = self.intreg[self.rd] - self.intreg[self.rs2]
+        model.intreg[self.rd] = model.intreg[self.rd] - model.intreg[self.rs2]
         #x[8+rd’] = x[8+rd’] - x[8+rs2’]
 
 
-@isaC("c.addw", 1, funct6=39, variant=RV64C) # RV64C/RV128C-only instruction t
+@isaC("c.addw", 1, funct6=39, variant=RV64I) # RV64C/RV128C-only instruction t
 class InstructionCADDW(InstructionCAType):
     def expand(self):
         pass
 
     def execute(self, model: State):
-        model.intreg[self.rd] = self.imm
+        model.intreg[self.rd] = model.intreg[self.rd] + model.intreg[self.rs2]
         #x[8+rd’] = sext((x[8+rd’] + x[8+rs2’])[31:0])
         #addw rd’,rd’,rs2’
 
@@ -679,10 +680,10 @@ class InstructionCSUBW(InstructionCAType):
         pass
 
     def execute(self, model: State):
-        model.intreg[self.rd] = self.intreg[self.rd] - self.intreg[self.rs2]
+        model.intreg[self.rd] = model.intreg[self.rd] - model.intreg[self.rs2]
         #x[8+rd’] = sext((x[8+rd’] - x[8+rs2’])[31:0])
         #subw rd’,rd’,rs2’
-#####################################################################
+
 @isaC("c.sw", 0, funct3=6)
 class InstructionCSW(InstructionCSType):
     def expand(self):
@@ -690,13 +691,14 @@ class InstructionCSW(InstructionCSType):
         pass
 
     def execute(self, model: State):
-        #model.intreg[self.rd] = self.intreg[self.rs2]
+        #model.intreg[self.rd] = model.intreg[self.rs2]
         # M[x[8+rs1’] + uimm][31:0] = x[8+rs2’]
-        self.rs2 = (machinecode >> 2) & 0x1f
-        self.rs1 = (machinecode >> 7) & 0x1f
-        imm12to9 = (machinecode >> 8) & 0xf
-        imm8to7 = (machinecode >> 7) & 0x3
-        self.imm.set_from_bits((imm8to7 << 4) | imm12to9)
+        #self.rs2 = (machinecode >> 2) & 0x1f
+        #self.rs1 = (machinecode >> 7) & 0x1f
+        #imm12to9 = (machinecode >> 8) & 0xf
+        #imm8to7 = (machinecode >> 7) & 0x3
+        #self.imm.set_from_bits((imm8to7 << 4) | imm12to9)
+        pass
 
 @isaC("c.lwsp", 2, funct3=2)
 class InstructionCLWSP(InstructionCIType):
@@ -717,7 +719,7 @@ class InstructionCLWSP(InstructionCIType):
         pass
 
 
-@isaC("c.ldsp", 2, funct3=3, Variant=RV64I) #RV64C/RV128C-only instruction
+@isaC("c.ldsp", 2, funct3=3, variant=RV64I) #RV64C/RV128C-only instruction
 class InstructionCLDSP(InstructionCIType):
     def expand(self):
         #ld rd,offset[8:3](x2)
