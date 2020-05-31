@@ -470,7 +470,7 @@ class InstructionCSSType(InstructionCType):
     
     def decode(self, machinecode: int):
         self.rs2 = ((machinecode >> 2) & 0x1f)
-        imm = (machinecode >> 7) & 0x1f
+        imm = (machinecode >> 7) & 0x3f
         if imm is not None:
             self.imm.set(imm)
 
@@ -490,8 +490,9 @@ class InstructionCIWType(InstructionCType):
         self.imm.randomize()
 
     def decode(self, machinecode: int):
-        self.rd = ((machinecode >> 2) & 0x1f)
-        imm = (machinecode >> 5) & 0x1f
+        # TODO check correctness
+        self.rd = ((machinecode >> 2) & 0x07)
+        imm = ((machinecode >> 7) & 0xff)
         if imm is not None:
             self.imm.set(imm)
 
@@ -508,31 +509,16 @@ class InstructionCLType(InstructionCType):
             self.imm.set(imm)
 
     def randomize(self, variant: Variant):
-        self.rd = randrange(0, 16)
+        self.rd = randrange(8, 16)
+        self.rs = randrange(8, 16)
         self.imm.randomize()
 
     def decode(self, machinecode: int):
-        self.rd = ((machinecode >> 2) & 0x1f)
-        imm = (machinecode >> 5) & 0x1f
-        #imm6to4 = (machinecode >> 4) & 0x1f
-        #self.imm.set_from_bits((imm12 << 5) | imm6to4)
-
-    def __str__(self):
-        return "{} x{}, {}".format(self._mnemonic, self.rd, self.imm)
-
-
-class InstructionCBType(InstructionCType):
-    def __init__(self, rd: int = None, imm: int = None):
-        super(InstructionCBType, self).__init__()
-        self.rd = rd
-        if self.rd is not None:
-            self.rd = rd + 8
-        self.imm = Immediate(bits=6,signed=True,lsb0=True)
-        if imm is not None:
-            self.imm.set(imm)
-
-    def decode(self, machinecode: int):
-        self.rd = (machinecode)
+        self.rs = ((machinecode >> 7) & 0x07)
+        self.rd = ((machinecode >> 2) & 0x07)
+        imm6to5 = ((machinecode >> 5) & 0x03)
+        imm12to10 = ((machinecode >> 10) & 0x07)
+        self.imm.set_from_bits((imm12to10 << 5) | imm6to5)
 
     def __str__(self):
         return "{} x{}, {}".format(self._mnemonic, self.rd, self.imm)
@@ -547,36 +533,36 @@ class InstructionCSType(InstructionCType):
             self.imm.set(imm)
 
     def randomize(self, variant: Variant):
-        self.rd = randrange(0, 16)
+        self.rs = randrange(8, 16)
+        self.rs2 = randrange(8, 16)
         self.imm.randomize()
 
     def decode(self, machinecode: int):
-        self.rd = ((machinecode >> 7) & 0x1f)
-        imm10 = (machinecode >> 10) & 0x3F
-        imm6to5 = (machinecode >> 5) & 0x1
-        #self.imm.set_from_bits((imm12 << 5) | imm6to4)
+        self.rs = ((machinecode >> 7) & 0x07)
+        self.rs2 = ((machinecode >> 2) & 0x07)
+        imm6to5 = ((machinecode >> 5) & 0x03)
+        imm12to10 = ((machinecode >> 10) & 0x07)
+        self.imm.set_from_bits((imm12to10 << 5) | imm6to5)
 
     def __str__(self):
         return "{} x{}, {}".format(self._mnemonic, self.rd, self.imm)
 
 class InstructionCAType(InstructionCType):
-    def __init__(self, rs: int = None, imm: int = None):
+    def __init__(self, rs2: int = None, rd: int = None, imm: int = None):
         super(InstructionCAType, self).__init__()
-        self.rs = rs
-        self.imm = None # Immediate(bits=6,signed=True,lsb0=True)
-        #if imm is not None:
-            #self.imm.set(imm)
+        self.rd = rd
+        self.rs2 = rs2
+        self.imm = None # no immidiate
 
     def randomize(self, variant: Variant):
         self.rd = randrange(0, 16)
+        self.rs2 = randrange(0, 16)
         self.imm.randomize()
 
     def decode(self, machinecode: int):
-        #self.rd = ((machinecode >> 7) & 0x1f)
-        #imm12 = (machinecode >> 12) & 0x1
-        #imm6to4 = (machinecode >> 4) & 0x1f
-        #self.imm.set_from_bits((imm12 << 5) | imm6to4)
-        pass
+        self.rd = ((machinecode >> 7) & 0x07)
+        self.rs2 = ((machinecode >> 2) & 0x07)
+        self.imm = None # no immidiate
 
     def __str__(self):
         return "{} x{}, {}".format(self._mnemonic, self.rd, self.imm)
@@ -585,22 +571,16 @@ class InstructionCAType(InstructionCType):
 class InstructionCJType(InstructionCType):
     def __init__(self, rs: int = None, imm: int = None):
         super(InstructionCJType, self).__init__()
-        #self.jp = rs
-        #self.rs = rs
-        #self.imm = None # Immediate(bits=6,signed=True,lsb0=True)
-        #if imm is not None:
-            #self.imm.set(imm)
+        self.jp = rs
+        self.rs = rs
+        self.imm = None # no immidiate
 
     def randomize(self, variant: Variant):
-        self.rd = randrange(0, 16)
+        self.rs = randrange(0, 16)
         self.imm.randomize()
 
     def decode(self, machinecode: int):
-        #self.rd = ((machinecode >> 7) & 0x1f)
-        #imm12 = (machinecode >> 12) & 0x1
-        #imm6to4 = (machinecode >> 4) & 0x1f
-        #self.imm.set_from_bits((imm12 << 5) | imm6to4)
-        pass
+        self.rs = ((machinecode) & 0xff)
 
     def __str__(self):
         return "{} x{}, {}".format(self._mnemonic, self.rd, self.imm)
